@@ -19,20 +19,20 @@ var todo_list = {
   toggle_all: function() {
     var total_todos = this.todos.length;
     var completed_todos = 0;
-    for (var i = 0; i < total_todos; i++) {
-      if (this.todos[i].completed === true){
-        completed_todos++;
+
+    this.todos.forEach(function(todo) {
+      if (todo.completed === true) {
+        completed_todos++
       }
-    }
-    if (completed_todos === total_todos) {
-      for (var i = 0; i < total_todos; i++) {
-        this.todos[i].completed = false;
+    })
+
+    this.todos.forEach(function(todo) {
+      if (completed_todos === total_todos) {
+        todo.completed = false;
+      } else {
+        todo.completed = true
       }
-    } else {
-      for (var i = 0; i < total_todos; i++) {
-        this.todos[i].completed = true;
-      }
-    }
+    })
   }
 };
 
@@ -51,16 +51,12 @@ var handlers = {
     change_todo_text_input.value = ''
     view.display_todos();
   },
-  delete_todo: function() {
-    var delete_todo_position_input = document.getElementById('delete_todo_position_input')
-    todo_list.delete_todo(delete_todo_position_input.valueAsNumber)
-    delete_todo_position_input.value = ''
+  delete_todo: function(position) {
+    todo_list.delete_todo(position)
     view.display_todos();
   },
-  toggle_completed: function() {
-    var toggle_completed_position_input = document.getElementById('toggle_completed_position_input')
-    todo_list.toggle_completed(toggle_completed_position_input.valueAsNumber)
-    toggle_completed_position_input.value = ''
+  toggle_completed: function(position) {
+    todo_list.toggle_completed(position)
     view.display_todos();
   },
   toggle_all: function() {
@@ -73,17 +69,50 @@ var view = {
   display_todos: function() {
     var todos_ul = document.querySelector('ul')
     todos_ul.innerHTML = ''
-    for (var i=0; i < todo_list.todos.length; i++) {
+
+    todo_list.todos.forEach(function(todo, position) {
       var todo_li = document.createElement('li')
-      var todo = todo_list.todos[i]
       var completed_todo_text = ''
+
       if (todo.completed === true) {
-        completed_todo_text = '(x) ' + todo.todo_text;
-      } else {
-        completed_todo_text = '( ) ' + todo.todo_text;
+          completed_todo_text = '(x) ' + todo.todo_text;
+        } else {
+          completed_todo_text = '( ) ' + todo.todo_text;
+        }
+
+        todo_li.id = position
+        todo_li.textContent = completed_todo_text
+        todo_li.appendChild(this.create_delete_button())
+        todo_li.appendChild(this.create_complete_button())
+        todos_ul.appendChild(todo_li)
+      }, this)
+
+  },
+  create_delete_button: function() {
+    var delete_button = document.createElement('button')
+    delete_button.textContent = 'Delete'
+    delete_button.className = 'delete_button'
+    return delete_button
+  },
+  create_complete_button: function() {
+    var complete_button = document.createElement('button')
+    complete_button.textContent = 'Mark Complete'
+    complete_button.className = 'complete_button'
+    return complete_button
+  },
+  setup_event_listeners: function() {
+    var todos_ul = document.querySelector('ul')
+    
+    todos_ul.addEventListener('click', function(event) {
+      var element_clicked = event.target
+    
+      if (element_clicked.className === 'delete_button') {
+        handlers.delete_todo(parseInt(element_clicked.parentNode.id))
+      } else { (element_clicked.className === 'complete_button') 
+        handlers.toggle_completed(parseInt(element_clicked.parentNode.id))
       }
-      todo_li.textContent = completed_todo_text
-      todos_ul.appendChild(todo_li)
-    }
+    })
   }
 };
+
+view.setup_event_listeners()
